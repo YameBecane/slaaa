@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/dados/p5.dom.min.js"></script>
+    <meta charset="utf-8" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #ecf0f1;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        #game-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        .menu-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .menu-content {
+            background: rgba(25, 30, 40, 0.9);
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(241, 196, 15, 0.4);
+            border: 2px solid #f1c40f;
+        }
+        
+        .menu-title {
+            text-align: center;
+            color: #f1c40f;
+            margin-bottom: 25px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .menu-section {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #34495e;
+        }
+        
+        .menu-section h2 {
+            color: #f1c40f;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .button {
+            background: linear-gradient(to bottom, #f1c40f, #f39c12);
+            color: #2c3e50;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 8px 5px;
+            transition: all 0.3s;
+            width: 100%;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        
+        .button:hover {
+            background: linear-gradient(to bottom, #f39c12, #e67e22);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .button.pesadelo {
+            background: linear-gradient(to bottom, #e74c3c, #c0392b);
+            color: white;
+        }
+        
+        .button.multiplayer {
+            background: linear-gradient(to bottom, #9b59b6, #8e44ad);
+            color: white;
+        }
+        
+        .dropdown {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border: 1px solid #f1c40f;
+            border-radius: 5px;
+            padding: 10px;
+            width: 100%;
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+        
+        .theme-option {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .theme-option:hover {
+            background: #34495e;
+        }
+        
+        .theme-preview {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 1px solid #fff;
+        }
+        
+        .slider-container {
+            margin: 15px 0;
+        }
+        
+        .slider-container label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ecf0f1;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: #2c3e50;
+            border-radius: 5px;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #f1c40f;
+            cursor: pointer;
+        }
+        
+        .key-button {
+            display: inline-block;
+            background: #2c3e50;
+            color: #f1c40f;
+            border: 1px solid #f1c40f;
+            border-radius: 4px;
+            padding: 3px 8px;
+            margin: 0 3px;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(52, 73, 94, 0.5);
+            border-radius: 5px;
+        }
+        
+        .score-display {
+            text-align: center;
+            font-size: 1.3em;
+            color: #f1c40f;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .pause-menu {
+            text-align: center;
+        }
+        
+        .game-over-menu {
+            text-align: center;
+        }
+        
+        .game-over-message {
+            font-size: 2em;
+            color: #e74c3c;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+        
+        /* Custom scrollbar */
+        .menu-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .menu-content::-webkit-scrollbar-track {
+            background: #2c3e50;
+            border-radius: 10px;
+        }
+        
+        .menu-content::-webkit-scrollbar-thumb {
+            background: #f1c40f;
+            border-radius: 10px;
+        }
+        
+        .menu-content::-webkit-scrollbar-thumb:hover {
+            background: #f39c12;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="game-canvas"></div>
+        
+        <div class="menu-overlay" id="main-menu">
+            <div class="menu-content">
+                <h1 class="menu-title">ESQUIVAR DAS BOLAS</h1>
+                
+                <div class="menu-section">
+                    <h2>Modo de Jogo</h2>
+                    <button class="button" onclick="startGame('single')">Single Player</button>
+                    <button class="button multiplayer" onclick="startGame('multi')">Multiplayer</button>
+                </div>
+                
+                <div class="menu-section">
+                    <h2>Dificuldade</h2>
+                    <button class="button" onclick="setDifficulty('facil')">Fácil</button>
+                    <button class="button" onclick="setDifficulty('medio')">Médio</button>
+                    <button class="button" onclick="setDifficulty('dificil')">Difícil</button>
+                    <button class="button pesadelo" onclick="setDifficulty('pesadelo')">PESADELO</button>
+                </div>
+                
+                <div class="menu-section">
+                    <h2>Tema</h2>
+                    <select class="dropdown" id="theme-selector" onchange="changeTheme(this.value)">
+                        <option value="default">Padrão (Colorido)</option>
+                        <option value="darker">Escuro</option>
+                        <option value="white">Branco</option>
+                        <option value="agua">Água</option>
+                        <option value="rose">Rosa</option>
+                    </select>
+                </div>
+                
+                <div class="menu-section">
+                    <h2>Configurações</h2>
+                    <div class="slider-container">
+                        <label for="player-speed">Velocidade do Jogador: <span id="speed-value">5</span></label>
+                        <input type="range" id="player-speed" class="slider" min="3" max="10" value="5">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="ball-speed">Velocidade das Bolas: <span id="ball-speed-value">5</span></label>
+                        <input type="range" id="ball-speed" class="slider" min="1" max="10" value="5">
+                    </div>
+                    
+                    <button class="button" onclick="openSettings()">Mais Configurações</button>
+                </div>
+                
+                <div class="score-display" id="high-score">Recorde: 0s</div>
+            </div>
+        </div>
+        
+        <div class="menu-overlay hidden" id="pause-menu">
+            <div class="menu-content pause-menu">
+                <h1 class="menu-title">JOGO PAUSADO</h1>
+                <div class="score-display" id="pause-score">Tempo: 0s</div>
+                <button class="button" onclick="resumeGame()">Continuar</button>
+                <button class="button" onclick="restartGame()">Reiniciar</button>
+                <button class="button" onclick="exitToMenu()">Voltar ao Menu</button>
+            </div>
+        </div>
+        
+        <div class="menu-overlay hidden" id="game-over-menu">
+            <div class="menu-content game-over-menu">
+                <div class="game-over-message">GAME OVER</div>
+                <div class="score-display" id="final-score">Tempo: 0s</div>
+                <div class="score-display" id="new-high-score">Novo Recorde!</div>
+                <button class="button" onclick="restartGame()">Jogar Novamente</button>
+                <button class="button" onclick="exitToMenu()">Voltar ao Menu</button>
+                <p style="margin-top: 20px; color: #f1c40f;">Pressione ESPAÇO para jogar rapidamente</p>
+            </div>
+        </div>
+        
+        <div class="menu-overlay hidden" id="settings-menu">
+            <div class="menu-content">
+                <h1 class="menu-title">CONFIGURAÇÕES</h1>
+                
+                <div class="menu-section">
+                    <h2>Controles</h2>
+                    <div class="control-row">
+                        <span>Jogador 1 (Setas):</span>
+                        <div>
+                            <span class="key-button">←</span>
+                            <span class="key-button">→</span>
+                            <span class="key-button">↑</span>
+                            <span class="key-button">↓</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-row">
+                        <span>Jogador 2 (WASD):</span>
+                        <div>
+                            <span class="key-button">W</span>
+                            <span class="key-button">A</span>
+                            <span class="key-button">S</span>
+                            <span class="key-button">D</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-row">
+                        <span>Pausar:</span>
+                        <span class="key-button">ESC</span>
+                    </div>
+                    
+                    <div class="control-row">
+                        <span>Reiniciar:</span>
+                        <span class="key-button">R</span>
+                    </div>
+                </div>
+                
+                <div class="menu-section">
+                    <h2>Jogabilidade</h2>
+                    <div class="slider-container">
+                        <label for="timer-setting">Tempo de Preparação: <span id="timer-value">3</span>s</label>
+                        <input type="range" id="timer-setting" class="slider" min="0" max="10" value="3">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="ball-count">Número de Bolas: <span id="ball-count-value">5</span></label>
+                        <input type="range" id="ball-count" class="slider" min="1" max="20" value="5">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="ball-size">Tamanho das Bolas: <span id="ball-size-value">5</span></label>
+                        <input type="range" id="ball-size" class="slider" min="1" max="10" value="5">
+                    </div>
+                </div>
+                
+                <div class="menu-section">
+                    <h2>Aparencia</h2>
+                    <div class="slider-container">
+                        <label for="glow-effect">Efeito de Brilho: <span id="glow-value">5</span></label>
+                        <input type="range" id="glow-effect" class="slider" min="0" max="10" value="5">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="particle-effect">Efeito de Partículas: <span id="particle-value">5</span></label>
+                        <input type="range" id="particle-effect" class="slider" min="0" max="10" value="5">
+                    </div>
+                </div>
+                
+                <button class="button" onclick="closeSettings()">Voltar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variáveis do jogo
+        let jogador, jogador2;
+        let bolas = [];
+        let tempoInicio;
+        let pontuacao = 0;
+        let gameOver = false;
+        let jogoIniciado = false;
+        let jogoPausado = false;
+        let modoJogo = 'single';
+        let dificuldade = 'medio';
+        let recorde = 0;
+        let recordeMulti = 0;
+        let velocidadeBaseBolas = 1;
+        let tempoUltimoAumentoVelocidade = 0;
+        let temaAtual = 'default';
+        
+        // Elementos do DOM
+        let mainMenu, pauseMenu, gameOverMenu, settingsMenu;
+        let gameCanvas;
+        
+        // Configurações
+        let config = {
+            startTimer: 3,
+            playerSpeed: 5,
+            player2Speed: 5,
+            ballSpeed: 5,
+            ballCount: 5,
+            ballSize: 5,
+            glowEffect: 5,
+            particleEffect: 5,
+            playerColor: '#0096ff',
+            player2Color: '#ff4d94',
+            ballsFollow: true,
+            smartBalls: true,
+            speedIncrease: true,
+            removeOldBalls: true
+        };
+
+        function setup() {
+            // Configurar o canvas do jogo
+            gameCanvas = createCanvas(windowWidth, windowHeight);
+            gameCanvas.parent('game-canvas');
+            
+            // Obter referências aos menus
+            mainMenu = select('#main-menu');
+            pauseMenu = select('#pause-menu');
+            gameOverMenu = select('#game-over-menu');
+            settingsMenu = select('#settings-menu');
+            
+            // Configurar eventos de UI
+            setupUIEvents();
+            
+            // Carregar recordes salvos
+            carregarRecordes();
+            
+            // Previne o scroll com teclas e roda do mouse
+            document.addEventListener('keydown', preventScroll);
+            document.addEventListener('wheel', preventScroll, { passive: false });
+            
+            // Inicializar o jogo no menu
+            noLoop(); // Não iniciar o draw loop até o jogo começar
+        }
+
+        function draw() {
+            if (!jogoIniciado || jogoPausado) return;
+            
+            if (gameOver) {
+                // Tela de game over é mostrada através do menu HTML
+                return;
+            }
+            
+            // Limpar o canvas com base no tema
+            aplicarTema();
+            
+            // Desenha um grid de fundo
+            drawGrid();
+            
+            // Atualiza e mostra o jogador 1
+            jogador.atualizar();
+            jogador.mostrar();
+            
+            // Atualiza e mostra o jogador 2 (se multiplayer)
+            if (modoJogo === 'multi') {
+                jogador2.atualizar();
+                jogador2.mostrar();
+                
+                // Verifica se um jogador pode reviver o outro
+                verificarRevive();
+            }
+            
+            // Atualiza e mostra as bolas
+            for (let i = bolas.length - 1; i >= 0; i--) {
+                bolas[i].atualizar();
+                bolas[i].mostrar();
+                
+                // Verifica colisão com jogador 1
+                if (!jogador.estaInativo() && bolas[i].colidiuCom(jogador)) {
+                    if (modoJogo === 'single') {
+                        gameOver = true;
+                        finalizarJogo();
+                    } else {
+                        jogador.inativar();
+                    }
+                }
+                
+                // Verifica colisão com jogador 2 (se multiplayer)
+                if (modoJogo === 'multi' && !jogador2.estaInativo() && bolas[i].colidiuCom(jogador2)) {
+                    jogador2.inativar();
+                }
+                
+                // Remove bolas antigas para reduzir lag
+                if (config.removeOldBalls && bolas[i].tempoVida > 600) {
+                    bolas.splice(i, 1);
+                }
+            }
+            
+            // Aumenta progressivamente a velocidade das bolas
+            if (config.speedIncrease && millis() - tempoUltimoAumentoVelocidade > 5000) {
+                velocidadeBaseBolas *= 1.05;
+                tempoUltimoAumentoVelocidade = millis();
+            }
+            
+            // Atualiza a pontuação baseada no tempo
+            pontuacao = (millis() - tempoInicio) / 1000;
+            
+            // Verifica se o jogo acabou (todos os jogadores inativos no multiplayer)
+            if (modoJogo === 'multi' && jogador.estaInativo() && jogador2.estaInativo()) {
+                gameOver = true;
+                finalizarJogo();
+            }
+            
+            // Mostra a pontuação
+            fill(255);
+            textSize(32);
+            textAlign(LEFT, TOP);
+            text("Tempo: " + pontuacao.toFixed(1) + "s", 20, 20);
+            
+            if (modoJogo === 'single') {
+                text("Recorde: " + recorde.toFixed(1) + "s", 20, 60);
+            } else {
+                text("Recorde: " + recordeMulti.toFixed(1) + "s", 20, 60);
+                
+                // Mostra status dos jogadores
+                fill(jogador.estaInativo() ? color(255, 0, 0) : color(0, 255, 0));
+                text("J1: " + (jogador.estaInativo() ? "INATIVO" : "VIVO"), width - 200, 20);
+                
+                fill(jogador2.estaInativo() ? color(255, 0, 0) : color(0, 255, 0));
+                text("J2: " + (jogador2.estaInativo() ? "INATIVO" : "VIVO"), width - 200, 60);
+            }
+            
+            // Adiciona bolas periodicamente (mais frequente em dificuldades maiores)
+            let frequencia;
+            switch(dificuldade) {
+                case 'facil':
+                    frequencia = 90;
+                    break;
+                case 'medio':
+                    frequencia = 70;
+                    break;
+                case 'dificil':
+                    frequencia = 50;
+                    break;
+                case 'pesadelo':
+                    frequencia = 30;
+                    break;
+            }
+            
+            if (frameCount % frequencia === 0 && bolas.length < config.ballCount * 5) {
+                adicionarBola();
+            }
+        }
+
+        function setupUIEvents() {
+            // Configurações de velocidade do jogador
+            select('#player-speed').input(function() {
+                config.playerSpeed = parseInt(this.value());
+                select('#speed-value').html(config.playerSpeed);
+                if (jogador) jogador.velocidade = config.playerSpeed;
+            });
+            
+            // Configurações de velocidade das bolas
+            select('#ball-speed').input(function() {
+                config.ballSpeed = parseInt(this.value());
+                select('#ball-speed-value').html(config.ballSpeed);
+            });
+            
+            // Configurações de timer
+            select('#timer-setting').input(function() {
+                config.startTimer = parseInt(this.value());
+                select('#timer-value').html(config.startTimer);
+            });
+            
+            // Configurações de contagem de bolas
+            select('#ball-count').input(function() {
+                config.ballCount = parseInt(this.value());
+                select('#ball-count-value').html(config.ballCount);
+            });
+            
+            // Configurações de tamanho de bolas
+            select('#ball-size').input(function() {
+                config.ballSize = parseInt(this.value());
+                select('#ball-size-value').html(config.ballSize);
+            });
+            
+            // Configurações de efeito de brilho
+            select('#glow-effect').input(function() {
+                config.glowEffect = parseInt(this.value());
+                select('#glow-value').html(config.glowEffect);
+            });
+            
+            // Configurações de efeito de partículas
+            select('#particle-effect').input(function() {
+                config.particleEffect = parseInt(this.value());
+                select('#particle-value').html(config.particleEffect);
+            });
+        }
+
+        function startGame(modo) {
+            modoJogo = modo;
+            jogoIniciado = true;
+            gameOver = false;
+            jogoPausado = false;
+            bolas = [];
+            velocidadeBaseBolas = 1;
+            tempoUltimoAumentoVelocidade = 0;
+            
+            // Esconde o menu principal
+            mainMenu.addClass('hidden');
+            
+            // Inicializa os jogadores
+            jogador = new Jogador(config.playerColor, config.playerSpeed, 1);
+            
+            if (modoJogo === 'multi') {
+                jogador2 = new Jogador(config.player2Color, config.player2Speed, 2);
+                
+                // Posiciona os jogadores em lados opostos
+                jogador.x = width * 0.25;
+                jogador2.x = width * 0.75;
+                jogador.y = jogador2.y = height / 2;
+            }
+            
+            // Inicia o jogo
+            tempoInicio = millis();
+            tempoUltimoAumentoVelocidade = millis();
+            
+            // Inicia o loop de desenho
+            loop();
+        }
+
+        function setDifficulty(diff) {
+            dificuldade = diff;
+            select('#high-score').html('Dificuldade: ' + 
+                (diff === 'facil' ? 'Fácil' : 
+                 diff === 'medio' ? 'Médio' : 
+                 diff === 'dificil' ? 'Difícil' : 'PESADELO'));
+        }
+
+        function pauseGame() {
+            if (jogoIniciado && !gameOver) {
+                jogoPausado = true;
+                pauseMenu.removeClass('hidden');
+                select('#pause-score').html('Tempo: ' + pontuacao.toFixed(1) + 's');
+                noLoop();
+            }
+        }
+
+        function resumeGame() {
+            if (jogoPausado) {
+                jogoPausado = false;
+                pauseMenu.addClass('hidden');
+                loop();
+            }
+        }
+
+        function restartGame() {
+            // Reinicia o jogo com as mesmas configurações
+            startGame(modoJogo);
+            gameOverMenu.addClass('hidden');
+            pauseMenu.addClass('hidden');
+        }
+
+        function exitToMenu() {
+            jogoIniciado = false;
+            gameOver = false;
+            jogoPausado = false;
+            mainMenu.removeClass('hidden');
+            gameOverMenu.addClass('hidden');
+            pauseMenu.addClass('hidden');
+            noLoop();
+            
+            // Atualiza recorde no menu
+            atualizarRecordeNoMenu();
+        }
+
+        function finalizarJogo() {
+            jogoIniciado = false;
+            gameOverMenu.removeClass('hidden');
+            select('#final-score').html('Tempo: ' + pontuacao.toFixed(1) + 's');
+            
+            // Verifica se bateu o recorde
+            if (modoJogo === 'single') {
+                if (pontuacao > recorde) {
+                    recorde = pontuacao;
+                    select('#new-high-score').removeClass('hidden');
+                    salvarRecordes();
+                } else {
+                    select('#new-high-score').addClass('hidden');
+                }
+            } else {
+                if (pontuacao > recordeMulti) {
+                    recordeMulti = pontuacao;
+                    select('#new-high-score').removeClass('hidden');
+                    salvarRecordes();
+                } else {
+                    select('#new-high-score').addClass('hidden');
+                }
+            }
+            
+            noLoop();
+        }
+
+        function openSettings() {
+            settingsMenu.removeClass('hidden');
+        }
+
+        function closeSettings() {
+            settingsMenu.addClass('hidden');
+        }
+
+        function changeTheme(tema) {
+            temaAtual = tema;
+            // Aplicar o tema imediatamente se o jogo estiver rodando
+            if (jogoIniciado && !gameOver && !jogoPausado) {
+                aplicarTema();
+            }
+        }
+
+        function aplicarTema() {
+            switch(temaAtual) {
+                case 'darker':
+                    background(10, 10, 20);
+                    break;
+                case 'white':
+                    background(240, 240, 245);
+                    break;
+                case 'agua':
+                    background(20, 50, 80);
+                    break;
+                case 'rose':
+                    background(60, 20, 40);
+                    break;
+                default:
+                    background(40, 40, 60, 200);
+            }
+        }
+
+        function carregarRecordes() {
+            const recordeSalvo = localStorage.getItem('recordeBolas');
+            const recordeMultiSalvo = localStorage.getItem('recordeMultiBolas');
+            
+            if (recordeSalvo) {
+                recorde = parseFloat(recordeSalvo);
+            }
+            
+            if (recordeMultiSalvo) {
+                recordeMulti = parseFloat(recordeMultiSalvo);
+            }
+            
+            atualizarRecordeNoMenu();
+        }
+
+        function salvarRecordes() {
+            localStorage.setItem('recordeBolas', recorde);
+            localStorage.setItem('recordeMultiBolas', recordeMulti);
+            atualizarRecordeNoMenu();
+        }
+
+        function atualizarRecordeNoMenu() {
+            select('#high-score').html('Recorde: ' + 
+                (modoJogo === 'single' ? recorde.toFixed(1) : recordeMulti.toFixed(1)) + 's');
+        }
+
+        function preventScroll(e) {
+            if (jogoIniciado && !gameOver) {
+                if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || 
+                    e.key === ' ' || e.keyCode === 32 ||
+                    e.key === 'w' || e.key === 'a' || e.key === 's' || e.key === 'd' ||
+                    e.key === 'W' || e.key === 'A' || e.key === 'S' || e.key === 'D') {
+                    e.preventDefault();
+                }
+                
+                if (e.type === 'wheel') {
+                    e.preventDefault();
+                }
+            }
+        }
+
+        function keyPressed() {
+            // Tecla ESC para pausar/despausar
+            if (keyCode === 27) {
+                if (jogoIniciado && !gameOver) {
+                    if (jogoPausado) {
+                        resumeGame();
+                    } else {
+                        pauseGame();
+                    }
+                }
+                return false;
+            }
+            
+            // Tecla R para reiniciar
+            if (keyCode === 82) { // R
+                if (jogoIniciado) {
+                    restartGame();
+                }
+            }
+            
+            // Tecla ESPAÇO para reiniciar rapidamente após game over
+            if (keyCode === 32 && gameOver) {
+                restartGame();
+            }
+            
+            // Previne comportamento padrão das teclas de movimento
+            if (keyCode === UP_ARROW || keyCode === DOWN_ARROW || 
+                keyCode === LEFT_ARROW || keyCode === RIGHT_ARROW ||
+                key === 'w' || key === 'a' || key === 's' || key === 'd' ||
+                key === 'W' || key === 'A' || key === 'S' || key === 'D') {
+                return false;
+            }
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+        }
+
+        // As classes Jogador e Bola e funções auxiliares seriam implementadas aqui
+        // (Implementação similar à anterior, mas adaptada para o novo sistema de menus)
+
+        // Classe do Jogador
+        class Jogador {
+            constructor(cor, velocidade, numero) {
+                this.x = width / 2;
+                this.y = height / 2;
+                this.tamanho = 30;
+                this.velocidade = velocidade;
+                this.cor = color(cor);
+                this.numero = numero;
+                this.inativo = false;
+                this.tempoInativo = 0;
+            }
+            
+            atualizar() {
+                if (this.inativo) return;
+                
+                if (this.numero === 1) {
+                    if (keyIsDown(LEFT_ARROW)) this.x -= this.velocidade;
+                    if (keyIsDown(RIGHT_ARROW)) this.x += this.velocidade;
+                    if (keyIsDown(UP_ARROW)) this.y -= this.velocidade;
+                    if (keyIsDown(DOWN_ARROW)) this.y += this.velocidade;
+                } else {
+                    if (keyIsDown(65)) this.x -= this.velocidade; // A
+                    if (keyIsDown(68)) this.x += this.velocidade; // D
+                    if (keyIsDown(87)) this.y -= this.velocidade; // W
+                    if (keyIsDown(83)) this.y += this.velocidade; // S
+                }
+                
+                this.x = constrain(this.x, this.tamanho/2, width - this.tamanho/2);
+                this.y = constrain(this.y, this.tamanho/2, height - this.tamanho/2);
+            }
+            
+            mostrar() {
+                if (this.inativo) {
+                    push();
+                    ellipseMode(RADIUS);
+                    fill(red(this.cor), green(this.cor), blue(this.cor), 100);
+                    ellipse(this.x, this.y, this.tamanho);
+                    stroke(255, 0, 0);
+                    strokeWeight(3);
+                    line(this.x - this.tamanho/2, this.y - this.tamanho/2, this.x + this.tamanho/2, this.y + this.tamanho/2);
+                    line(this.x + this.tamanho/2, this.y - this.tamanho/2, this.x - this.tamanho/2, this.y + this.tamanho/2);
+                    pop();
+                    return;
+                }
+                
+                push();
+                ellipseMode(RADIUS);
+                fill(red(this.cor), green(this.cor), blue(this.cor), 100);
+                ellipse(this.x, this.y, this.tamanho * 1.2);
+                fill(this.cor);
+                ellipse(this.x, this.y, this.tamanho);
+                fill(255, 255, 255, 150);
+                ellipse(this.x, this.y, this.tamanho/3);
+                fill(255);
+                textSize(16);
+                textAlign(CENTER, CENTER);
+                text(this.numero, this.x, this.y);
+                pop();
+            }
+            
+            inativar() {
+                this.inativo = true;
+                this.tempoInativo = 0;
+            }
+            
+            reviver() {
+                this.inativo = false;
+            }
+            
+            estaInativo() {
+                return this.inativo;
+            }
+        }
+
+        // Classe das Bolas
+        class Bola {
+            constructor(velocidade, tamanho, inteligencia) {
+                this.tamanho = tamanho * config.ballSize / 5;
+                this.velocidade = velocidade * config.ballSpeed / 5;
+                this.inteligencia = inteligencia;
+                this.tempoVida = 0;
+                this.respawn();
+                this.cor = color(random(150, 255), random(150, 255), random(150, 255));
+            }
+            
+            respawn() {
+                let borda = floor(random(4));
+                if (borda === 0) {
+                    this.x = random(width);
+                    this.y = -this.tamanho;
+                } else if (borda === 1) {
+                    this.x = width + this.tamanho;
+                    this.y = random(height);
+                } else if (borda === 2) {
+                    this.x = random(width);
+                    this.y = height + this.tamanho;
+                } else {
+                    this.x = -this.tamanho;
+                    this.y = random(height);
+                }
+                
+                this.calcularDirecao();
+            }
+            
+            calcularDirecao() {
+                if (config.ballsFollow) {
+                    let alvoX, alvoY;
+                    
+                    if (modoJogo === 'multi') {
+                        const jogadoresAtivos = [];
+                        if (!jogador.estaInativo()) jogadoresAtivos.push(jogador);
+                        if (!jogador2.estaInativo()) jogadoresAtivos.push(jogador2);
+                        
+                        if (jogadoresAtivos.length > 0) {
+                            const alvo = random(jogadoresAtivos);
+                            alvoX = alvo.x;
+                            alvoY = alvo.y;
+                        } else {
+                            alvoX = width/2;
+                            alvoY = height/2;
+                        }
+                    } else {
+                        alvoX = jogador.x;
+                        alvoY = jogador.y;
+                    }
+                    
+                    let dx = alvoX - this.x;
+                    let dy = alvoY - this.y;
+                    
+                    if (random() > this.inteligencia) {
+                        dx += random(-width/2, width/2) * (1 - this.inteligencia);
+                        dy += random(-height/2, height/2) * (1 - this.inteligencia);
+                    }
+                    
+                    let magnitude = sqrt(dx * dx + dy * dy);
+                    if (magnitude > 0) {
+                        this.direcao = createVector(
+                            (dx / magnitude) * this.velocidade,
+                            (dy / magnitude) * this.velocidade
+                        );
+                    }
+                } else {
+                    let angle = random(TWO_PI);
+                    this.direcao = createVector(
+                        cos(angle) * this.velocidade,
+                        sin(angle) * this.velocidade
+                    );
+                }
+            }
+            
+            atualizar() {
+                this.tempoVida++;
+                this.x += this.direcao.x;
+                this.y += this.direcao.y;
+                
+                if (config.ballsFollow && frameCount % 30 === 0) {
+                    this.calcularDirecao();
+                }
+                
+                if (this.x < -this.tamanho * 2 || this.x > width + this.tamanho * 2 ||
+                    this.y < -this.tamanho * 2 || this.y > height + this.tamanho * 2) {
+                    this.respawn();
+                }
+            }
+            
+            mostrar() {
+                push();
+                ellipseMode(RADIUS);
+                fill(red(this.cor), green(this.cor), blue(this.cor), 100);
+                ellipse(this.x, this.y, this.tamanho * 1.1);
+                fill(this.cor);
+                ellipse(this.x, this.y, this.tamanho);
+                fill(255, 255, 255, 70);
+                ellipse(this.x - this.tamanho/4, this.y - this.tamanho/4, this.tamanho/3);
+                pop();
+            }
+            
+            colidiuCom(outro) {
+                let d = dist(this.x, this.y, outro.x, outro.y);
+                return d < (this.tamanho + outro.tamanho/2);
+            }
+        }
+
+        function drawGrid() {
+            stroke(30, 30, 40, 100);
+            strokeWeight(1);
+            
+            for (let y = 0; y < height; y += 20) {
+                line(0, y, width, y);
+            }
+            
+            for (let x = 0; x < width; x += 20) {
+                line(x, 0, x, height);
+            }
+        }
+
+        function adicionarBola() {
+            let velocidade, tamanho, inteligencia;
+            
+            switch(dificuldade) {
+                case 'facil':
+                    velocidade = random(1.5, 2.5) * velocidadeBaseBolas;
+                    tamanho = random(25, 35);
+                    inteligencia = 0.7;
+                    break;
+                case 'medio':
+                    velocidade = random(2, 3.5) * velocidadeBaseBolas;
+                    tamanho = random(20, 30);
+                    inteligencia = 0.8;
+                    break;
+                case 'dificil':
+                    velocidade = random(2.5, 4.5) * velocidadeBaseBolas;
+                    tamanho = random(15, 25);
+                    inteligencia = 0.9;
+                    break;
+                case 'pesadelo':
+                    velocidade = random(3.5, 6) * velocidadeBaseBolas;
+                    tamanho = random(10, 20);
+                    inteligencia = 0.98;
+                    break;
+            }
+            
+            if (!config.smartBalls) {
+                inteligencia = 0;
+            }
+            
+            bolas.push(new Bola(velocidade, tamanho, inteligencia));
+        }
+
+        function verificarRevive() {
+            // Implementação simplificada para exemplo
+            const distancia = dist(jogador.x, jogador.y, jogador2.x, jogador2.y);
+            if (distancia < 50) {
+                if (jogador2.estaInativo() && !jogador.estaInativo() && keyIsDown(32)) {
+                    jogador2.reviver();
+                }
+                if (jogador.estaInativo() && !jogador2.estaInativo() && (keyIsDown(81) || keyIsDown(113))) {
+                    jogador.reviver();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
