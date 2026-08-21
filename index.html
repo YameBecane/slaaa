@@ -570,8 +570,10 @@
             // Configurações de velocidade do jogador
             select('#player-speed').input(function() {
                 config.playerSpeed = parseInt(this.value());
+                config.player2Speed = parseInt(this.value());
                 select('#speed-value').html(config.playerSpeed);
                 if (jogador) jogador.velocidade = config.playerSpeed;
+                if (jogador2) jogador2.velocidade = config.player2Speed;
             });
             
             // Configurações de velocidade das bolas
